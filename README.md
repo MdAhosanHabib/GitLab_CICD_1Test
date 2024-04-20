@@ -55,3 +55,10 @@ Verify Deployment: Verify the deployment by checking the status of pods and node
 <img width="784" alt="Pods_SVC" src="https://github.com/MdAhosanHabib/GitLab_CICD_1Test/assets/43145662/121a1612-1f84-4b8a-9044-5388020f0e53">
 <img width="958" alt="APP" src="https://github.com/MdAhosanHabib/GitLab_CICD_1Test/assets/43145662/f18adbcd-bfb9-400d-9116-376de758ffc7">
 
+In this file, the steps have been written:
+https://github.com/MdAhosanHabib/GitLab_CICD_1Test/blob/main/GitLab%20configure%20Operate.txt
+
+The Medium blog is: 
+
+Thanks from,
+Ahosan Habib
