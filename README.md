@@ -1,6 +1,7 @@
 # GitLab CICD with Kubernetes
 ![GitLab_CICD](https://github.com/MdAhosanHabib/GitLab_CICD_1Test/assets/43145662/bdcda7b9-436e-4ab2-86b8-5b3bdb9aba2d)
 
+#### In this document we will try to deploy a CI CD pipeline with GitLab, here the summery
 ## Installing GitLab:
 Update System: Begin by updating the system packages using the package manager. For example, using dnf update -y.
 
@@ -21,6 +22,7 @@ Reconfigure GitLab: Reconfigure GitLab to apply the changes made to the configur
 Reset Admin Password: Use gitlab-rake to reset the password for the admin user.
 
 Verify Installation: Check the status of GitLab services using gitlab-ctl status and ensure that GitLab is accessible via the configured URL.
+<img width="960" alt="Git_Repo" src="https://github.com/MdAhosanHabib/GitLab_CICD_1Test/assets/43145662/6be43926-6d33-4ce2-a3ee-0e8d7e9a11c3">
 
 
 ## Source Code & Image Push to GitLab:
@@ -50,4 +52,6 @@ Build Docker Images: Use GitLab CI/CD pipeline to build Docker images, login to 
 Deploy in Kubernetes: Use GitLab CI/CD pipeline to deploy the application in Kubernetes by configuring deployment and service using kubectl commands.
 
 Verify Deployment: Verify the deployment by checking the status of pods and nodes in Kubernetes using kubectl commands.
+<img width="784" alt="Pods_SVC" src="https://github.com/MdAhosanHabib/GitLab_CICD_1Test/assets/43145662/121a1612-1f84-4b8a-9044-5388020f0e53">
+<img width="958" alt="APP" src="https://github.com/MdAhosanHabib/GitLab_CICD_1Test/assets/43145662/f18adbcd-bfb9-400d-9116-376de758ffc7">
 
