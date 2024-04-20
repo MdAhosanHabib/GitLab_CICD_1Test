@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pod
+  template:
+    metadata:
+      labels:
+        app: pod
+    spec:
+      containers:
+      - name: pod
+        image: ahosan/ahosantest1:webV1
+        ports:
+        - containerPort: 80

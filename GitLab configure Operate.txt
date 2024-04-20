@@ -1,0 +1,198 @@
+########################### Install GitLab ###########################
+[root@gitlab ~]# dnf update -y
+
+[root@gitlab ~]# dnf -y install curl policycoreutils-python-utils openssh-server perl
+
+[root@gitlab ~]# systemctl start sshd
+[root@gitlab ~]# systemctl enable sshd
+[root@gitlab ~]# systemctl status sshd
+
+[root@gitlab ~]# yum -y install postfix
+
+[root@gitlab ~]# systemctl start postfix
+[root@gitlab ~]# systemctl enable postfix 
+[root@gitlab ~]# systemctl status postfix
+
+[root@gitlab ~]# mkdir /gitlab
+[root@gitlab ~]# cd /gitlab/
+
+[root@gitlab gitlab]# curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh | sudo bash
+
+[root@gitlab gitlab]# yum -y install gitlab-ce
+
+[root@gitlab gitlab]# vi /etc/gitlab/gitlab.rb
+    #external_url 'http://gitlab.example.com'
+    external_url 'http://192.168.141.133'
+
+[root@gitlab gitlab]# gitlab-ctl reconfigure
+[root@gitlab gitlab]# gitlab-ctl status
+
+[root@gitlab gitlab]# gitlab-rake "gitlab:password:reset"
+Enter username: root
+Enter password: Test@redhat
+Confirm password: Test@redhat
+Password successfully updated for user with username root.
+[root@gitlab gitlab]#
+
+[root@gitlab gitlab]# netstat -tlpn
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 127.0.0.1:8150          0.0.0.0:*               LISTEN      7114/gitlab-kas
+tcp        0      0 127.0.0.1:8151          0.0.0.0:*               LISTEN      7114/gitlab-kas
+tcp        0      0 127.0.0.1:8153          0.0.0.0:*               LISTEN      7114/gitlab-kas
+tcp        0      0 127.0.0.1:8154          0.0.0.0:*               LISTEN      7114/gitlab-kas
+tcp        0      0 127.0.0.1:8155          0.0.0.0:*               LISTEN      7114/gitlab-kas
+tcp        0      0 127.0.0.1:8080          0.0.0.0:*               LISTEN      7173/puma 6.4.0 (un
+tcp        0      0 127.0.0.1:8082          0.0.0.0:*               LISTEN      7207/sidekiq_export
+tcp        0      0 127.0.0.1:8092          0.0.0.0:*               LISTEN      7205/sidekiq 6.5.12
+tcp        0      0 0.0.0.0:8060            0.0.0.0:*               LISTEN      7567/nginx: master
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      736/sshd: /usr/sbin
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      7567/nginx: master
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      5846/master
+tcp        0      0 127.0.0.1:9187          0.0.0.0:*               LISTEN      7620/postgres_expor
+tcp        0      0 127.0.0.1:9168          0.0.0.0:*               LISTEN      7589/ruby
+tcp        0      0 127.0.0.1:9121          0.0.0.0:*               LISTEN      7591/redis_exporter
+tcp        0      0 127.0.0.1:9093          0.0.0.0:*               LISTEN      7612/alertmanager
+tcp        0      0 127.0.0.1:9090          0.0.0.0:*               LISTEN      7598/prometheus
+tcp        0      0 127.0.0.1:9100          0.0.0.0:*               LISTEN      7573/node_exporter
+tcp        0      0 127.0.0.1:9229          0.0.0.0:*               LISTEN      7555/gitlab-workhor
+tcp        0      0 127.0.0.1:9236          0.0.0.0:*               LISTEN      7547/gitaly
+tcp6       0      0 :::22                   :::*                    LISTEN      736/sshd: /usr/sbin
+tcp6       0      0 ::1:9168                :::*                    LISTEN      7589/ruby
+tcp6       0      0 ::1:25                  :::*                    LISTEN      5846/master
+tcp6       0      0 :::9094                 :::*                    LISTEN      7612/alertmanager
+[root@gitlab gitlab]#
+
+http://192.168.141.133/users/sign_in
+
+########################### Source Code & Image Push GitLab ###########################
+## doing at gitlab server
+Add below line in /etc/gitlab/gitlab.rb file
+ gitlab_rails['gitlab_kas_enabled'] = true
+
+init 6
+
+--create it at k8s-conn with blank
+.gitlab/agents/k8s-conn/config.yaml
+
+--k8s add token
+glagent-m3831BHmQpXrFPGDvwYrSR2Y4cr9D13PzRpxGBqd2BzRfxecXA
+
+## doing at k8s server
+[root@master1 ~]# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+[root@master1 ~]# chmod 700 get_helm.sh
+[root@master1 ~]# ./get_helm.sh
+[root@master1 ~]# helm repo add gitlab https://charts.gitlab.io
+[root@master1 ~]# helm repo update
+[root@master1 ~]# helm upgrade --install k8s-conn gitlab/gitlab-agent \
+    --namespace gitlab-agent-k8s-conn \
+    --create-namespace \
+    --set image.tag=v16.6.0 \
+    --set config.token=glagent-kWiBpDdCRNeyL73-_DTBEz9b2dPuXLDN1-73MWS_NmMDH6x62w \
+    --set config.kasAddress=ws://192.168.141.133/-/kubernetes-agent/
+
+[root@master1 ~]# kubectl get pods -n gitlab-agent-k8s-conn
+NAME                                       READY   STATUS              RESTARTS   AGE
+k8s-conn-gitlab-agent-v2-5cf8d5ffd-pcx4s   0/1     ContainerCreating   0          48s
+k8s-conn-gitlab-agent-v2-5cf8d5ffd-wfpfh   0/1     ContainerCreating   0          48s
+[root@master1 ~]#
+[root@master1 ~]# kubectl describe pods k8s-conn-gitlab-agent-v2-5cf8d5ffd-pcx4s -n gitlab-agent-k8s-conn
+
+## doing at gitlab server
+[root@gitlab gitlab]# cd /gitlab
+[root@gitlab gitlab]# git clone https://github.com/mkaraminejad/cicd_pipeline.git
+[root@gitlab gitlab]# cd /gitlab/cicd_pipeline/1-K8S-CICD
+
+dnf install docker -y
+docker images
+docker build -t sample:v1 .
+
+docker run -d --name web002 -p 8089:80 sample:v1
+
+mv Dockerfile src /gitlab/cicd_pipeline/
+cd /gitlab/cicd_pipeline
+
+git init
+git remote add origin http://192.168.141.133/root/k8s-data.git
+git branch -M main
+git push -uf origin main
+
+-- only for image build
+stages: 
+    - build
+
+build_image:
+    image: docker
+    stage: build
+    services:
+        - docker:dind
+    script:
+        - docker login -u ahosan -p pass
+        - docker build -t ahosan/ahosantest1:webV1 .
+        - docker push ahosan/ahosantest1:webV1
+        - echo "image build"
+
+############################# Deploy in Kubernetes #############################
+
+[root@master1 app]# vi gittest_pod.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pod
+  template:
+    metadata:
+      labels:
+        app: pod
+    spec:
+      containers:
+      - name: pod
+        image: ahosan/ahosantest1:webV1
+        ports:
+        - containerPort: 80
+
+[root@master1 app]# vi gittest_svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: pod-service
+spec:
+  selector:
+    app: pod
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+
+########## CICD ##############
+stages: 
+    - build
+    - deploy
+
+build_image:
+    image: docker
+    stage: build
+    services:
+        - docker:dind
+    script:
+        - docker login -u ahosan -p pass
+        - docker build -t ahosan/ahosantest1:webV1 .
+        - docker push ahosan/ahosantest1:webV1
+        - echo "image build"
+
+deploy_project:
+  stage: deploy
+  image:
+    name: ahosan/ahosantest1:webV1
+    entrypoint: ['']
+  script:
+    - kubectl config use-context root/k8s-conn:k8s-conn
+    - kubectl get pods
+    - kubectl get nodes -o wide
+
