@@ -58,7 +58,7 @@ Verify Deployment: Verify the deployment by checking the status of pods and node
 In this file, the steps have been written:
 https://github.com/MdAhosanHabib/GitLab_CICD_1Test/blob/main/GitLab%20configure%20Operate.txt
 
-The Medium blog is: 
+The Medium blog is: https://medium.com/@ahosanhabib.974/gitlab-cicd-with-kubernetes-b23fa132abdb
 
 Thanks from,
 Ahosan Habib
